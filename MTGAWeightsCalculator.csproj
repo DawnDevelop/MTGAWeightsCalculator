@@ -6,6 +6,7 @@
     <ImplicitUsings>enable</ImplicitUsings>
 	<PublishRepositoryUrl>true</PublishRepositoryUrl>
 	<PublishUrl>docs</PublishUrl>
+	<PublishAot>False</PublishAot>
   </PropertyGroup>
 	
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
@@ -27,8 +28,14 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Content Update="wwwroot\csv\weights.csv">
+    <Content Update="wwwroot\csv\WeightsCommander.csv">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Update="wwwroot\csv\WeightsMainDeck.csv">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Update="wwwroot\index.html">
+      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
     </Content>
   </ItemGroup>
 

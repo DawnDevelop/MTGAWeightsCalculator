@@ -14,7 +14,7 @@ public partial class MTGDeckParser(HttpClient httpClient)
 
     public async Task<OutputWeight> ParseDeck(string cards)
     {
-        var inputCards = ParseDeckFromMtga(cards);
+        var inputCards = ParseDeckFromInput(cards);
 
         var weightedCards = await GetCardWeights();
 
@@ -22,14 +22,22 @@ public partial class MTGDeckParser(HttpClient httpClient)
             return new OutputWeight(0);
 
         var totalWeight = 0;
+        var commander = inputCards.Where(x => x.IsCommander).SingleOrDefault();
+
+        if(commander != null)
+        {
+            totalWeight += await GetCommanderWeight(commander.Name);
+            inputCards.Remove(commander);
+        }
+            
         foreach (var inputCard in inputCards)
         {
             if (weightedCards.TryGetValue(inputCard.Name, out var weightedCard))
             {
-                totalWeight += int.Parse(weightedCard.Weight) * inputCard.Quantity;
+                totalWeight += weightedCard.Weight * inputCard.Quantity;
             }
         }
-
+        
         return new OutputWeight(totalWeight);
     }
 
@@ -42,38 +50,86 @@ public partial class MTGDeckParser(HttpClient httpClient)
             PrepareHeaderForMatch = args => args.Header.ToLower()
         };
 
-        var csvContent = await httpClient.GetStreamAsync("csv/weights.csv");
+        var csvContent = await httpClient.GetStringAsync("csv/WeightsMainDeck.csv");
 
-        using (var reader = new StreamReader(csvContent))
-        using (var csv = new CsvReader(reader, csvConfig))
+        using var reader = new StringReader(csvContent);
+        using var csv = new CsvReader(reader, csvConfig);
+        
+        var records = csv.GetRecordsAsync<WeightedCard>();
+
+        await foreach (var card in records)
         {
-            var records = csv.GetRecordsAsync<WeightedCard>();
-
-            await foreach (var card in records)
-            {
-                weightedCards[card.Name] = card;
-            }
+            weightedCards[card.Name] = card;
         }
-
+        
         return weightedCards;
     }
 
-    public static List<InputCard> ParseDeckFromMtga(string input)
+    public async Task<int> GetCommanderWeight(string cardName)
     {
-        List<InputCard> cards = [];
+
+        var csvConfig = new CsvConfiguration(CultureInfo.InvariantCulture)
+        {
+            PrepareHeaderForMatch = args => args.Header.ToLower()
+        };
+
+        var csvContent = await httpClient.GetStringAsync("csv/WeightsCommander.csv");
+        using var reader = new StringReader(csvContent);
+        using var csv = new CsvReader(reader, csvConfig);
+        var records = csv.GetRecords<WeightedCard>();
+
+        foreach (var card in records)
+        {
+            if (card.Name == cardName)
+                return card.Weight;
+        }
+
+        return 0;
+    }
+
+    public List<InputCard> ParseDeckFromInput(string input)
+    {
+        var cards = new List<InputCard>();
         var regex = CompiledRegex();
         var matches = regex.Matches(input);
 
-        foreach (var match in matches.Where(match => match.Groups.Count == 3))
+        var isCommanderSection = false;
+
+        foreach (Match match in matches)
         {
-            var quantity = int.Parse(match.Groups[1].Value);
-            var name = match.Groups[2].Value.Trim();
-            cards.Add(new InputCard(name, quantity));
+            var line = match.Groups[0].Value.Trim();
+
+            if (line.StartsWith("Commander"))
+            {
+                isCommanderSection = true;
+                continue; 
+            }
+
+            var quantity = 1; // Default quantity if not specified
+            var parts = line.Split(' ', 2); // Split quantity and name
+            if (parts.Length == 2 && int.TryParse(parts[0], out int qty))
+            {
+                quantity = qty;
+                line = parts[1]; // Update line to exclude quantity
+            }
+
+            if (isCommanderSection)
+            {
+                if (line.Contains("Deck"))
+                    line = line.Replace("Deck", "").Trim(' ');
+
+                cards.Add(new InputCard(line, quantity, true)); // Mark as commander card
+                isCommanderSection = false;
+                continue;
+            }
+
+            cards.Add(new InputCard(line, quantity));
         }
 
         return cards;
     }
 
-    [GeneratedRegex(@"(\d+) ([^0-9]+)")]
+    [GeneratedRegex(@"(\d* ?[^0-9]+)")]
     private static partial Regex CompiledRegex();
+
 }
