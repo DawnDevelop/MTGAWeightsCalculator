@@ -20,18 +20,17 @@ public partial class MTGDeckParser(HttpClient httpClient)
             return null;
 
         var totalWeight = 0;
-        var commander = inputCards.Where(x => x.IsCommander).SingleOrDefault();
 
-        if(commander != null)
-        {
-            totalWeight += await GetCommanderWeight(commander.Name);
-            inputCards.Remove(commander);
-        }
-        
         var outputCards = new List<OutputCard>();
         foreach (var inputCard in inputCards)
         {
-            if (weightedCards.TryGetValue(inputCard.Name, out var weightedCard))
+            if(inputCard.IsCommander)
+            {
+                var commanderWeight = await GetCommanderWeight(inputCard.Name);
+                totalWeight += commanderWeight;
+                outputCards.Add(new OutputCard(inputCard.Quantity, inputCard.Name, commanderWeight));
+            }
+            else if (weightedCards.TryGetValue(inputCard.Name, out var weightedCard))
             {
                 outputCards.Add(new OutputCard(inputCard.Quantity, inputCard.Name, weightedCard.Weight));
                 totalWeight += weightedCard.Weight * inputCard.Quantity;
