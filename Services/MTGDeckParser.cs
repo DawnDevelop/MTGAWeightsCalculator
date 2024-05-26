@@ -100,56 +100,49 @@ public partial class MTGDeckParser(HttpClient httpClient)
     public List<InputCard> ParseDeckFromInput(string input)
     {
         var cards = new List<InputCard>();
-        var regex = CompiledRegex();
-        var matches = regex.Matches(input);
-
         var isCommanderSection = false;
+        var lines = input.Split(new[] { '\r', '\n' }, StringSplitOptions.RemoveEmptyEntries);
 
-        if(matches.Count == 0)
+
+        foreach (var line in lines)
         {
-            regex = MTGACompiledRegex();
-            matches = regex.Matches(input);
-        }
+            var newLine = RemoveExtraInfo(line);
 
-        foreach (Match match in matches)
-        {
-            var line = match.Groups[0].Value.Trim();
+            if (newLine.StartsWith("Deck"))
+                continue;
+            if (newLine.StartsWith("Sideboard"))
+                continue;
 
-            if (line.StartsWith("Commander"))
+            if (newLine.StartsWith("Commander"))
             {
                 isCommanderSection = true;
                 continue; 
             }
 
-            var quantity = 1; // Default quantity if not specified
-            var parts = line.Split(' ', 2); // Split quantity and name
-            if (parts.Length == 2 && int.TryParse(parts[0], out int qty))
+            var parts = newLine.Split(' ', 2);
+            if (int.TryParse(parts[0], out int quantity))
             {
-                quantity = qty;
-                line = parts[1]; // Update line to exclude quantity
+                if(isCommanderSection)
+                {
+                    cards.Add(new InputCard(parts[1], 1, true)); // Mark as commander card
+                    isCommanderSection = false;
+                    continue;
+                }
+                else
+                {
+                    cards.Add(new InputCard(parts[1], quantity));
+                }
             }
 
-            if (isCommanderSection)
-            {
-                if (line.Contains("Deck"))
-                    line = line.Replace("Deck", "").Trim(' ');
-
-                cards.Add(new InputCard(line, quantity, true)); // Mark as commander card
-                isCommanderSection = false;
-                continue;
-            }
-
-            cards.Add(new InputCard(line, quantity));
         }
 
         return cards;
     }
 
-    [GeneratedRegex(@"(\d* ?[^0-9]+)")]
-    private static partial Regex CompiledRegex();
-
-    [GeneratedRegex(@"Deck\s+(\d+)\s+([^0-9(]+)(?:\([^)]+\))?")]
-    private static partial Regex MTGACompiledRegex();
-
-
+    public static string RemoveExtraInfo(string input)
+    {
+        string pattern = @"\(.*?\).*";
+        var replaced = Regex.Replace(input, pattern, "").Trim();
+        return replaced;
+    }
 }

@@ -13,7 +13,7 @@
 
 <h3>MTGA Deck weight calculator</h3>
 
-<input @bind="deckId" placeholder="Enter deck code from MTGA" />
+<textarea class="form-control" id="multilineInput" @bind="deckId" placeholder="Enter deck code from MTGA"></textarea>
 <button @onclick="ParseDeck">Get Deck Weight</button>
 
 <br />
@@ -65,6 +65,7 @@
     private string cardName = string.Empty;
     private bool isCommander = false;
     private int singleCardWeight = 0;
+    private string multilineText { get; set; }
 
     private async Task ParseDeck()
     {
