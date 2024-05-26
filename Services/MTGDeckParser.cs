@@ -10,14 +10,14 @@ namespace MTGAWeightsCalculator.Services;
 public partial class MTGDeckParser(HttpClient httpClient)
 {
 
-    public async Task<OutputWeight> ParseDeck(string cards)
+    public async Task<OutputCards?> ParseDeck(string cards)
     {
         var inputCards = ParseDeckFromInput(cards);
 
         var weightedCards = await GetMainDeckCardWeights();
 
         if (weightedCards == null)
-            return new OutputWeight(0);
+            return null;
 
         var totalWeight = 0;
         var commander = inputCards.Where(x => x.IsCommander).SingleOrDefault();
@@ -27,16 +27,18 @@ public partial class MTGDeckParser(HttpClient httpClient)
             totalWeight += await GetCommanderWeight(commander.Name);
             inputCards.Remove(commander);
         }
-            
+        
+        var outputCards = new List<OutputCard>();
         foreach (var inputCard in inputCards)
         {
             if (weightedCards.TryGetValue(inputCard.Name, out var weightedCard))
             {
+                outputCards.Add(new OutputCard(inputCard.Quantity, inputCard.Name, weightedCard.Weight));
                 totalWeight += weightedCard.Weight * inputCard.Quantity;
             }
         }
         
-        return new OutputWeight(totalWeight);
+        return new OutputCards(totalWeight, outputCards);
     }
 
     public async Task<Dictionary<string, WeightedCard>> GetMainDeckCardWeights()

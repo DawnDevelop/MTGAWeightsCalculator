@@ -3,6 +3,14 @@
 @using MTGAWeightsCalculator.Services
 @inject MTGDeckParser DeckParserService
 
+<style>
+    .tblTop > tbody > tr > td {
+        min-width:50px;
+        max-width: 100px;
+        border: 1px solid black;
+    }
+</style>
+
 <h3>MTGA Deck weight calculator</h3>
 
 <input @bind="deckId" placeholder="Enter deck code from MTGA" />
@@ -11,41 +19,65 @@
 <br />
 <br />
 
-<h3>Single Card weight calculator</h3>
+<h3>Get Single Card weight</h3>
 <input @bind="cardName" placeholder="Enter Card Name" />
 <input type="checkbox" @bind-value="isCommander"> Is Commander?
 <button @onclick="GetSingleCardWeight">Get Card Weight</button>
 
-@if (weight != null)
+
+
+@if (cards != null)
 {
-    <h4>Output Weight:</h4>
-    <ul>
-        <li>@weight.Weight.ToString()</li>
-    </ul>
+    <h5>Total Weight: @cards.TotalWeight.ToString()</h5>
+    <table class="tblTop">
+        
+        <thead>
+            <tr>
+                <td><h4>Quantity</h4></td>
+                <td><h4>Card Name</h4></td>
+                <td><h4>Weight</h4></td>
+            </tr>
+            @foreach (var weight in cards.Cards)
+            {
+                <tr>
+                    <td>@weight.Quantity.ToString()</td>
+                    <td>@weight.CardName</td>
+                    <td>@weight.Weight.ToString()</td>
+                </tr>
+            }
+        </thead>
+        <tbody>
+        </tbody>
+    </table>
 }
-@if(singleCardWeight != 0)
+
+@if (singleCardWeight != 0)
 {
     <h4>Single Card Weight:</h4>
     <ul>
         <li>@singleCardWeight.ToString()</li>
     </ul>
 }
+
 @code {
     private string deckId = null!;
-    private OutputWeight weight = null!;
-    private string cardName = null!;
+    private OutputCards? cards = null!;
+    private string cardName = string.Empty;
     private bool isCommander = false;
     private int singleCardWeight = 0;
+
     private async Task ParseDeck()
     {
+        singleCardWeight = 0;
         if (!string.IsNullOrEmpty(deckId))
         {
-            weight = await DeckParserService.ParseDeck(deckId);
+            cards = await DeckParserService.ParseDeck(deckId);
         }
     }
 
     private async Task GetSingleCardWeight()
     {
+        cards = null;
         if (!string.IsNullOrEmpty(cardName) && isCommander)
         {
             singleCardWeight = await DeckParserService.GetCommanderWeight(cardName);
@@ -54,5 +86,6 @@
         {
             singleCardWeight = await DeckParserService.GetSingleCardWeight(cardName);
         }
+        
     }
 }
