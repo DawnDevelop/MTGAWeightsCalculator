@@ -1,7 +1,5 @@
-﻿using System.Collections.Generic;
-using System.Globalization;
+﻿using System.Globalization;
 using System.Text.RegularExpressions;
-using System.Threading.Tasks;
 using CsvHelper;
 using CsvHelper.Configuration;
 using MTGAWeightsCalculator.Models;
@@ -16,7 +14,7 @@ public partial class MTGDeckParser(HttpClient httpClient)
     {
         var inputCards = ParseDeckFromInput(cards);
 
-        var weightedCards = await GetCardWeights();
+        var weightedCards = await GetMainDeckCardWeights();
 
         if (weightedCards == null)
             return new OutputWeight(0);
@@ -41,7 +39,7 @@ public partial class MTGDeckParser(HttpClient httpClient)
         return new OutputWeight(totalWeight);
     }
 
-    public async Task<Dictionary<string, WeightedCard>> GetCardWeights()
+    public async Task<Dictionary<string, WeightedCard>> GetMainDeckCardWeights()
     {
         var weightedCards = new Dictionary<string, WeightedCard>();
 
@@ -63,6 +61,16 @@ public partial class MTGDeckParser(HttpClient httpClient)
         }
         
         return weightedCards;
+    }
+
+    public async Task<int> GetSingleCardWeight(string cardName)
+    {
+        var weights = await GetMainDeckCardWeights();
+
+        if (weights.TryGetValue(cardName, out var card))
+            return card.Weight;
+        else 
+            return 0;
     }
 
     public async Task<int> GetCommanderWeight(string cardName)

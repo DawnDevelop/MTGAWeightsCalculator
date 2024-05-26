@@ -5,8 +5,16 @@
 
 <h3>MTGA Deck weight calculator</h3>
 
-<input @bind="deckId" placeholder="Enter deck ID" />
-<button @onclick="ParseDeck">Parse Deck</button>
+<input @bind="deckId" placeholder="Enter deck code from MTGA" />
+<button @onclick="ParseDeck">Get Deck Weight</button>
+
+<br />
+<br />
+
+<h3>Single Card weight calculator</h3>
+<input @bind="cardName" placeholder="Enter Card Name" />
+<input type="checkbox" @bind-value="isCommander"> Is Commander?
+<button @onclick="GetSingleCardWeight">Get Card Weight</button>
 
 @if (weight != null)
 {
@@ -15,16 +23,36 @@
         <li>@weight.Weight.ToString()</li>
     </ul>
 }
-
+@if(singleCardWeight != 0)
+{
+    <h4>Single Card Weight:</h4>
+    <ul>
+        <li>@singleCardWeight.ToString()</li>
+    </ul>
+}
 @code {
     private string deckId = null!;
     private OutputWeight weight = null!;
-
+    private string cardName = null!;
+    private bool isCommander = false;
+    private int singleCardWeight = 0;
     private async Task ParseDeck()
     {
         if (!string.IsNullOrEmpty(deckId))
         {
             weight = await DeckParserService.ParseDeck(deckId);
+        }
+    }
+
+    private async Task GetSingleCardWeight()
+    {
+        if (!string.IsNullOrEmpty(cardName) && isCommander)
+        {
+            singleCardWeight = await DeckParserService.GetCommanderWeight(cardName);
+        }
+        else
+        {
+            singleCardWeight = await DeckParserService.GetSingleCardWeight(cardName);
         }
     }
 }
