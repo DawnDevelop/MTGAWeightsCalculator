@@ -1,7 +1,7 @@
 {
   "mainAssemblyName": "MTGAWeightsCalculator",
   "resources": {
-    "hash": "sha256-fI537wYnTkMnAUitCBcLwgkOl873OdXnUbxunYcYSZc=",
+    "hash": "sha256-SYHCwgNRoIzA1msPSKTmiyxM97BTc36KyKV6YIOT41g=",
     "jsModuleNative": {
       "dotnet.native.8.0.5.k8qrcc28q0.js": "sha256-boyHe+0RMZDkzBKGhsrnXPhPg3oZ6UqJnTUzngJPjNY="
     },
@@ -33,7 +33,7 @@
       "Microsoft.Extensions.Primitives.wasm": "sha256-Ms2HR5Gpug/0uRAzdk4SUNT76Ml3CjFv9Jo+dUIMGac=",
       "Microsoft.JSInterop.wasm": "sha256-YrrPPJg6rA/Bmx1sladSdAwoqL78YSP+3xcjhBg0bnc=",
       "Microsoft.JSInterop.WebAssembly.wasm": "sha256-ZyIqQss3I64BQC2gc7JEDrkYq14vXKEXuw5vBJ5oFYM=",
-      "MTGAWeightsCalculator.wasm": "sha256-4JBVrDy3Y9iMHbcp+HJj8m70S8L4vmYq/Wb6ABKxLlM=",
+      "MTGAWeightsCalculator.wasm": "sha256-4h/OedCn1hDL4PuJ9tXUm/pftJBIM72WsVsAm+3U5aM=",
       "System.Collections.Concurrent.wasm": "sha256-LqwOlZHJi17b8IRrGVKLgHxJME5ee3Hz7+PEDPrg36Y=",
       "System.Collections.NonGeneric.wasm": "sha256-JSJ/PwgW703mknDVFbmhtCYLMPUxPiSccDu/s5z7/Vc=",
       "System.Collections.Specialized.wasm": "sha256-YVf2VHy4t1OvKoFjWU4Tuhn04Usy5h7+sXx1k4RIgkY=",
