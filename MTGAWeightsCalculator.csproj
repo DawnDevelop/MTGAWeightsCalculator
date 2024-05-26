@@ -31,8 +31,5 @@
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
   </ItemGroup>
-	
-	<Target Name="StaticWebAssets" AfterTargets="Publish">
-		<Exec Command="dotnet msbuild /t:GenerateStaticWebAssets /p:Configuration=$(Configuration)" />
-	</Target>
+
 </Project>
