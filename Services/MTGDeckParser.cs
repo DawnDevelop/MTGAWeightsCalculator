@@ -105,6 +105,12 @@ public partial class MTGDeckParser(HttpClient httpClient)
 
         var isCommanderSection = false;
 
+        if(matches.Count == 0)
+        {
+            regex = MTGACompiledRegex();
+            matches = regex.Matches(input);
+        }
+
         foreach (Match match in matches)
         {
             var line = match.Groups[0].Value.Trim();
@@ -141,5 +147,9 @@ public partial class MTGDeckParser(HttpClient httpClient)
 
     [GeneratedRegex(@"(\d* ?[^0-9]+)")]
     private static partial Regex CompiledRegex();
+
+    [GeneratedRegex(@"Deck\s+(\d+)\s+([^0-9(]+)(?:\([^)]+\))?")]
+    private static partial Regex MTGACompiledRegex();
+
 
 }
