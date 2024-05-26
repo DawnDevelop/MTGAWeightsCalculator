@@ -1,0 +1,30 @@
+﻿@page "/"
+@using MTGAWeightsCalculator.Models
+@using MTGAWeightsCalculator.Services
+@inject MTGDeckParser DeckParserService
+
+<h3>MTGA Deck weight calculator</h3>
+
+<input @bind="deckId" placeholder="Enter deck ID" />
+<button @onclick="ParseDeck">Parse Deck</button>
+
+@if (weight != null)
+{
+    <h4>Output Weight:</h4>
+    <ul>
+        <li>@weight.Weight</li>
+    </ul>
+}
+
+@code {
+    private string deckId = null!;
+    private OutputWeight weight = null!;
+
+    private async Task ParseDeck()
+    {
+        if (!string.IsNullOrEmpty(deckId))
+        {
+            weight = await DeckParserService.ParseDeck(deckId);
+        }
+    }
+}
