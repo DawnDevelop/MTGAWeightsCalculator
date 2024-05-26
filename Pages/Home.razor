@@ -65,7 +65,6 @@
     private string cardName = string.Empty;
     private bool isCommander = false;
     private int singleCardWeight = 0;
-    private string multilineText { get; set; }
 
     private async Task ParseDeck()
     {
@@ -79,14 +78,12 @@
     private async Task GetSingleCardWeight()
     {
         cards = null;
-        if (!string.IsNullOrEmpty(cardName) && isCommander)
+        if (!string.IsNullOrEmpty(cardName))
         {
-            singleCardWeight = await DeckParserService.GetCommanderWeight(cardName);
+            if (isCommander)
+                singleCardWeight = await DeckParserService.GetCommanderWeight(cardName.Trim());
+            else
+                singleCardWeight = await DeckParserService.GetSingleCardWeight(cardName.Trim());
         }
-        else
-        {
-            singleCardWeight = await DeckParserService.GetSingleCardWeight(cardName);
-        }
-        
     }
 }
