@@ -14,6 +14,6 @@ public class InputCard
 
 public class Deck
 {
-    public List<InputCard> MainDeck { get; set; } = [];
-    public List<InputCard> Sideboard { get; set; } = [];
+    public List<InputCard> MainDeck { get; init; } = [];
+    public List<InputCard> Sideboard { get; init; } = [];
 }
