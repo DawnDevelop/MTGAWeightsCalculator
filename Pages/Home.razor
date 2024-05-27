@@ -3,33 +3,26 @@
 @using MTGAWeightsCalculator.Services
 @inject MTGDeckParser DeckParserService
 
-<style>
-    .tblTop > tbody > tr > td {
-        min-width:50px;
-        max-width: 100px;
-        border: 1px solid black;
-    }
-</style>
-
 <h3>MTGA Deck weight calculator</h3>
 
-<textarea class="form-control" id="multilineInput" @bind="deckId" placeholder="Enter deck code from MTGA"></textarea>
+<InputTextArea class="form-control" @ref="multiLineInput" id="multilineInput" @bind-Value="deckId" placeholder="Enter deck code" />
 <button @onclick="ParseDeck">Get Deck Weight</button>
+<button @onclick="ClearInput">Clear Input</button>
 
 <br />
 <br />
 
 <h3>Get Single Card weight</h3>
-<input @bind="cardName" placeholder="Enter Card Name" />
+<InputText @bind-Value="cardName" @ref="singleInput" placeholder="Enter Card Name" />
 <input type="checkbox" @bind-value="isCommander"> Is Commander?
-<button @onclick="GetSingleCardWeight">Get Card Weight</button>
+<button @onclick="GetSingleCardWeightAsync">Get Card Weight</button>
 
 
 
 @if (cards != null)
 {
     <h5>Total Weight: @cards.TotalWeight.ToString()</h5>
-    <table class="tblTop">
+    <table class="table resizable-table">
         
         <thead>
             <tr>
@@ -65,6 +58,8 @@
     private string cardName = string.Empty;
     private bool isCommander = false;
     private int singleCardWeight = 0;
+    private InputTextArea? multiLineInput;
+    private InputText? singleInput;
 
     private async Task ParseDeck()
     {
@@ -73,17 +68,50 @@
         {
             cards = await DeckParserService.ParseDeck(deckId);
         }
+
+        await SetMultiLineInputFocusAsync();
     }
 
-    private async Task GetSingleCardWeight()
+    private async Task GetSingleCardWeightAsync()
     {
         cards = null;
+        cardName = cardName.Trim();
         if (!string.IsNullOrEmpty(cardName))
         {
             if (isCommander)
-                singleCardWeight = await DeckParserService.GetCommanderWeight(cardName.Trim());
+                singleCardWeight = await DeckParserService.GetCommanderWeightAsync(cardName);
             else
-                singleCardWeight = await DeckParserService.GetSingleCardWeight(cardName.Trim());
+                singleCardWeight = await DeckParserService.GetSingleCardWeightAsync(cardName);
         }
+
+        await SetSingleLineInputFocusAsync();
+    }
+
+    private async Task ClearInput()
+    {
+        deckId = string.Empty;
+        cards = null;
+        await SetMultiLineInputFocusAsync();
+    }
+
+    private async Task SetMultiLineInputFocusAsync()
+    {
+        if (multiLineInput?.Element != null)
+        {
+            await multiLineInput.Element.Value.FocusAsync();
+        }
+    }
+
+    private async Task SetSingleLineInputFocusAsync()
+    {
+        if (singleInput?.Element != null)
+        {
+            await singleInput.Element.Value.FocusAsync();
+        }
+    }
+
+    protected override async Task OnInitializedAsync()
+    {
+        await DeckParserService.InitializeAsync();
     }
 }

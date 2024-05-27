@@ -1,0 +1,20 @@
+﻿.table-container {
+    overflow-x: auto;
+}
+
+.resizable-table {
+    table-layout: auto;
+    border-collapse: collapse;
+    width: auto;
+}
+
+.resizable-table th, .resizable-table td {
+    padding: 8px;
+    border: 1px solid #ddd;
+    text-align: left;
+    white-space: nowrap; /* Prevents text from wrapping */
+}
+
+.resizable-table th {
+    background-color: #f2f2f2;
+}
