@@ -72,12 +72,7 @@ public partial class MTGDeckParser(HttpClient httpClient)
         if(_mainDeckWeightsCache == null)
             await InitializeMainDeckWeightsCache();
 
-        if (_mainDeckWeightsCache!.TryGetValue(cardName, out var card))
-            return card.Weight;
-        else
-        {
-            return 0;
-        }
+        return _mainDeckWeightsCache!.TryGetValue(cardName, out var card) ? card.Weight : 0;
     }
 
     public static List<InputCard> ParseDeckFromInput(string input)
