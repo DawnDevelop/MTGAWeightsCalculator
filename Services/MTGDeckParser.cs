@@ -50,13 +50,13 @@ public partial class MTGDeckParser(HttpClient httpClient)
     public async Task InitializeMainDeckWeightsCache()
     {
         var csvContent = await _httpClient.GetStringAsync("csv/WeightsMainDeck.csv");
-        _mainDeckWeightsCache = ParseCsv<string, WeightedCard>(csvContent, dis => dis.Name, card => card.Name);
+        _mainDeckWeightsCache = ParseCsv<string, WeightedCard>(csvContent, dis => dis.Name, card => card.Name, StringComparer.OrdinalIgnoreCase);
     }
 
     public async Task InitializeCommanderWeightsCache()
     {
         var csvContent = await _httpClient.GetStringAsync("csv/WeightsCommander.csv");
-        _commanderWeightsCache = ParseCsv<string, WeightedCard>(csvContent, dis => dis.Name, card => card.Name)
+        _commanderWeightsCache = ParseCsv<string, WeightedCard>(csvContent, dis => dis.Name, card => card.Name, StringComparer.OrdinalIgnoreCase)
             .ToDictionary(card => card.Key, card => card.Value.Weight);
     }
 
@@ -110,7 +110,7 @@ public partial class MTGDeckParser(HttpClient httpClient)
         return CompiledRegex().Replace(input, "").Trim();
     }
 
-    private static Dictionary<TKey, TValue> ParseCsv<TKey, TValue>(string csvContent, Func<TValue, TKey> distinctBy, Func<TValue, TKey> keySelector)
+    private static Dictionary<TKey, TValue> ParseCsv<TKey, TValue>(string csvContent, Func<TValue, TKey> distinctBy, Func<TValue, TKey> keySelector, IEqualityComparer<TKey>? comparer = null)
         where TKey : notnull
         where TValue : class
     {
@@ -123,7 +123,7 @@ public partial class MTGDeckParser(HttpClient httpClient)
         using var csv = new CsvReader(reader, config);
 
         var records = csv.GetRecords<TValue>();
-        var dictionary = records.DistinctBy(distinctBy).ToDictionary(keySelector);
+        var dictionary = records.DistinctBy(distinctBy).ToDictionary(keySelector, comparer);
 
         return dictionary;
     }
