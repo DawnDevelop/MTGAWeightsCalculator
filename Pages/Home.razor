@@ -5,6 +5,11 @@
 
 <h3>MTGA Deck weight calculator</h3>
 
+<input type="checkbox" @bind-value="isHistoricBrawl"> <b>Is Historic Brawl?</b>
+
+<br />
+<br />
+
 <InputTextArea class="form-control" @ref="multiLineInput" id="multilineInput" @bind-Value="deckId" placeholder="Enter deck code" />
 <button @onclick="ParseDeck">Get Deck Weight</button>
 <button @onclick="ClearInput">Clear Input</button>
@@ -12,7 +17,7 @@
 <br />
 <br />
 
-<h3>Get Single Card weight</h3>
+<h4>Get Single Card weight</h4>
 <InputText @bind-Value="cardName" @ref="singleInput" placeholder="Enter Card Name" />
 <input type="checkbox" @bind-value="isCommander"> Is Commander?
 <button @onclick="GetSingleCardWeightAsync">Get Card Weight</button>
@@ -57,6 +62,7 @@
     private OutputCards? cards = null!;
     private string cardName = string.Empty;
     private bool isCommander = false;
+    private bool isHistoricBrawl = false;
     private int singleCardWeight = 0;
     private InputTextArea? multiLineInput;
     private InputText? singleInput;
@@ -66,7 +72,7 @@
         singleCardWeight = 0;
         if (!string.IsNullOrEmpty(deckId))
         {
-            cards = await DeckParserService.ParseDeck(deckId);
+            cards = await DeckParserService.ParseDeck(deckId, isHistoricBrawl);
         }
 
         await SetMultiLineInputFocusAsync();
@@ -79,9 +85,9 @@
         if (!string.IsNullOrEmpty(cardName))
         {
             if (isCommander)
-                singleCardWeight = await DeckParserService.GetCommanderWeightAsync(cardName);
+                singleCardWeight = await DeckParserService.GetCommanderWeightAsync(cardName, isHistoricBrawl);
             else
-                singleCardWeight = await DeckParserService.GetSingleCardWeightAsync(cardName);
+                singleCardWeight = await DeckParserService.GetSingleCardWeightAsync(cardName, isHistoricBrawl);
         }
 
         await SetSingleLineInputFocusAsync();
@@ -112,6 +118,6 @@
 
     protected override async Task OnInitializedAsync()
     {
-        await DeckParserService.InitializeAsync();
+        await DeckParserService.InitializeBrawlWeightsCache();
     }
 }

@@ -9,14 +9,13 @@ namespace MTGAWeightsCalculator.Services;
 public partial class MTGDeckParser(HttpClient httpClient)
 {
     private readonly HttpClient _httpClient = httpClient;
-    private Dictionary<string, WeightedCard>? _mainDeckWeightsCache;
-    private Dictionary<string, int>? _commanderWeightsCache;
+    private Dictionary<string, WeightedCard>? _brawlWeightsCache;
     private static readonly char[] separator = ['\r', '\n'];
 
-    public async Task<OutputCards?> ParseDeck(string cards)
+    public async Task<OutputCards?> ParseDeck(string cards, bool isHistoricBrawl)
     {
-        if (_mainDeckWeightsCache == null || _commanderWeightsCache == null)
-            await InitializeAsync();
+        if (_brawlWeightsCache == null)
+            await InitializeBrawlWeightsCache();
 
         var inputCards = ParseDeckFromInput(cards);
 
@@ -27,52 +26,46 @@ public partial class MTGDeckParser(HttpClient httpClient)
         {
             if (inputCard.IsCommander)
             {
-                var commanderWeight = await GetCommanderWeightAsync(inputCard.Name);
+                var commanderWeight = await GetCommanderWeightAsync(inputCard.Name, isHistoricBrawl);
                 totalWeight += commanderWeight;
                 outputCards.Add(new OutputCard(inputCard.Quantity, inputCard.Name, commanderWeight));
             }
-            else if (_mainDeckWeightsCache!.TryGetValue(inputCard.Name, out var weightedCard))
+            else
             {
-                var cardWeight = weightedCard.Weight * inputCard.Quantity;
+                var cardWeight = await GetSingleCardWeightAsync(inputCard.Name, isHistoricBrawl);
                 outputCards.Add(new OutputCard(inputCard.Quantity, inputCard.Name, cardWeight));
                 totalWeight += cardWeight;
             }
         }
 
-        return new OutputCards(totalWeight, outputCards);
+        return new OutputCards(totalWeight, [.. outputCards.OrderByDescending(x => x.Weight)]);
     }
 
-    public async Task InitializeAsync()
+    public async Task InitializeBrawlWeightsCache()
     {
-        await Task.WhenAll(InitializeMainDeckWeightsCache(), InitializeCommanderWeightsCache());
+        var csvContent = await _httpClient.GetStringAsync("csv/BrawlWeights.csv");
+        _brawlWeightsCache = ParseCsv<string, WeightedCard>(csvContent, dis => dis.Name, card => card.Name, StringComparer.OrdinalIgnoreCase);
     }
 
-    public async Task InitializeMainDeckWeightsCache()
+    public async Task<int> GetCommanderWeightAsync(string cardName, bool isHistoricBrawl = false)
     {
-        var csvContent = await _httpClient.GetStringAsync("csv/WeightsMainDeck.csv");
-        _mainDeckWeightsCache = ParseCsv<string, WeightedCard>(csvContent, dis => dis.Name, card => card.Name, StringComparer.OrdinalIgnoreCase);
+        if (_brawlWeightsCache == null)
+            await InitializeBrawlWeightsCache();
+
+        if (_brawlWeightsCache!.TryGetValue(cardName, out var card))
+            return isHistoricBrawl ? card.WeightHistoricCommander : card.WeightStandardCommander;
+        else
+            return 0;
     }
-
-    public async Task InitializeCommanderWeightsCache()
+    public async Task<int> GetSingleCardWeightAsync(string cardName, bool isHistoricBrawl = false)
     {
-        var csvContent = await _httpClient.GetStringAsync("csv/WeightsCommander.csv");
-        _commanderWeightsCache = ParseCsv<string, WeightedCard>(csvContent, dis => dis.Name, card => card.Name, StringComparer.OrdinalIgnoreCase)
-            .ToDictionary(card => card.Key, card => card.Value.Weight);
-    }
+        if (_brawlWeightsCache == null)
+            await InitializeBrawlWeightsCache();
 
-    public async Task<int> GetCommanderWeightAsync(string cardName)
-    {
-        if (_commanderWeightsCache == null)
-            await InitializeCommanderWeightsCache();
-
-        return _commanderWeightsCache!.TryGetValue(cardName, out var weight) ? weight : 0;
-    }
-    public async Task<int> GetSingleCardWeightAsync(string cardName)
-    {
-        if(_mainDeckWeightsCache == null)
-            await InitializeMainDeckWeightsCache();
-
-        return _mainDeckWeightsCache!.TryGetValue(cardName, out var card) ? card.Weight : 0;
+        if (_brawlWeightsCache!.TryGetValue(cardName, out var card))
+            return isHistoricBrawl ? card.WeightHistoricMainDeck : card.WeightStandardMainDeck;
+        else
+            return 0;
     }
 
     public static List<InputCard> ParseDeckFromInput(string input)
@@ -116,7 +109,8 @@ public partial class MTGDeckParser(HttpClient httpClient)
     {
         var config = new CsvConfiguration(CultureInfo.InvariantCulture)
         {
-            PrepareHeaderForMatch = args => args.Header.ToLower()
+            PrepareHeaderForMatch = args => args.Header.ToLower(),
+            
         };
 
         using var reader = new StringReader(csvContent);

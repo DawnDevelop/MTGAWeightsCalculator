@@ -28,12 +28,6 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Content Update="wwwroot\csv\WeightsCommander.csv">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Content>
-    <Content Update="wwwroot\csv\WeightsMainDeck.csv">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Content>
     <Content Update="wwwroot\index.html">
       <CopyToOutputDirectory>Never</CopyToOutputDirectory>
     </Content>
