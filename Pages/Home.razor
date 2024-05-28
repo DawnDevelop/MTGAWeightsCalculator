@@ -15,9 +15,9 @@
 }
 
 <MudGrid>
-    <MudItem xs="6">
+    <MudItem xs="12" sm="6" md="6" xl="6" xxl="6">
         <MudField Label="Get Deck Card Weights" Variant="Variant.Outlined">
-            <MudTextField T="string" Variant="Variant.Text" @bind-Value="@deckId" Lines="10" Placeholder="Enter deck code" />
+            <MudTextField T="string" FullWidth="true" Variant="Variant.Text" @bind-Value="@deckId" Lines="10" Placeholder="Enter deck code" />
             <MudCheckBox @bind-Value="isHistoricBrawl" Color="Color.Primary" Label="Is Historic Brawl?" />
             <MudButton Variant="Variant.Filled" Color="Color.Primary" OnClick="ParseDeck">Get Deck Weight</MudButton>
             <MudButton Variant="Variant.Filled" Color="Color.Primary" OnClick="ClearInput">Clear Input</MudButton>
@@ -25,7 +25,7 @@
     </MudItem>
 </MudGrid>
 <MudGrid>
-    <MudItem xs="6">
+    <MudItem xs="12" sm="6" md="6" xl="6" xxl="6">
         <MudField Label="Get Single Card Weight" Variant="Variant.Outlined">
             <MudAutocomplete T="string"
                              @bind-Value="cardName"
@@ -48,7 +48,7 @@
 @if (cards != null)
 {
     <MudGrid>
-        <MudItem xs="12" sm="6" md="4">
+        <MudItem xs="12" sm="6" md="6" xl="6" xxl="6">
             <MudField Label="Combined total weight" Variant="Variant.Text">@cards.TotalWeight</MudField>
         </MudItem>
     </MudGrid>
@@ -74,7 +74,7 @@
     private int singleCardWeight = 0;
     bool loadingData = true;
 
-    private List<string> allCardNames = new List<string>(); // Assuming you have a way to get all card names
+    private List<string> allCardNames = [];
 
     private async Task ParseDeck()
     {
@@ -107,13 +107,6 @@
     {
         return await Task.FromResult(allCardNames.Where(x => x.Contains(value, StringComparison.InvariantCultureIgnoreCase)));
     }
-
-    // protected override async Task OnInitializedAsync()
-    // {
-    //     await DeckParserService.InitializeBrawlWeightsCache();
-
-    //     allCardNames = await DeckParserService.GetAllCardNames();
-    // }
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {

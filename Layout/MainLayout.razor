@@ -1,11 +1,12 @@
 ﻿@inherits LayoutComponentBase
 <MudThemeProvider @ref="@_mudThemeProvider" @bind-IsDarkMode="@_isDarkMode" />
 <MudLayout>
-    <MudAppBar Elevation="1">
-        <MudText Typo="Typo.h5" Class="ml-3">MTGA Card Weights Calculator</MudText>
-        <MudSwitch @bind-Value="@_isDarkMode" Color="Color.Primary" Class="ma-4" T="bool" Label="Toggle Light/Dark Mode" />
+    <MudAppBar Elevation="1" >
+        <MudText Typo="Typo.h6">Card Weights Calculator</MudText>
+        <MudSpacer />
+        <MudSwitch @bind-Value="@_isDarkMode" Size="Size.Small" Color="Color.Primary" Class="ma-4" T="bool" Label="Light/Dark Mode" />
     </MudAppBar>
-    <MudMainContent>
+    <MudMainContent Class="mt-16 pa-4">
         @Body
     </MudMainContent>
 </MudLayout>
