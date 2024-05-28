@@ -47,6 +47,14 @@ public partial class MTGDeckParser(HttpClient httpClient)
         _brawlWeightsCache = ParseCsv<string, WeightedCard>(csvContent, dis => dis.Name, card => card.Name, StringComparer.OrdinalIgnoreCase);
     }
 
+    public async Task<List<string>> GetAllCardNames()
+    {
+        if (_brawlWeightsCache == null)
+            await InitializeBrawlWeightsCache();
+
+        return [.. _brawlWeightsCache!.Select(x => x.Value.Name).Order()];
+    }
+
     public async Task<int> GetCommanderWeightAsync(string cardName, bool isHistoricBrawl = false)
     {
         if (_brawlWeightsCache == null)
