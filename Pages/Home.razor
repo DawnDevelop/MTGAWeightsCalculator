@@ -5,44 +5,45 @@
 
 @using MudBlazor
 @using System.Linq
-@* 
-<PageTitle>MTGA Card Weights Calculator</PageTitle>
-<MudText Typo="Typo.h3" GutterBottom="false">MTGA Card Weights Calculator</MudText>
- *@
-<div class="form-group">
-    
+@if (loadingData)
+{
+    <MudContainer MaxWidth="MaxWidth.ExtraExtraLarge">
+        <MudOverlay Visible="true" DarkBackground="true" ZIndex="9999">
+            <MudProgressCircular Color="Color.Secondary" Size=Size.Large Indeterminate="true" />
+        </MudOverlay>
+    </MudContainer>
+}
 
-    <MudGrid>
-        <MudItem xs="6">
-            <MudField Label="Get Deck Card Weights" Variant="Variant.Outlined">
-                <MudTextField T="string" Variant="Variant.Text" @bind-Value="@deckId" Lines="10" Placeholder="Enter deck code" />
-                <MudCheckBox @bind-Value="isHistoricBrawl" Color="Color.Primary" Label="Is Historic Brawl?" />
-                <MudButton Variant="Variant.Filled" Color="Color.Primary" OnClick="ParseDeck">Get Deck Weight</MudButton>
-                <MudButton Variant="Variant.Filled" Color="Color.Primary" OnClick="ClearInput">Clear Input</MudButton>
-            </MudField>
-        </MudItem>
-    </MudGrid>
-    <MudGrid>
-        <MudItem xs="6">
-            <MudField Label="Get Single Card Weight" Variant="Variant.Outlined">
-                <MudAutocomplete T="string"
-                                 @bind-Value="cardName"
-                                 SearchFunc="SearchCards"
-                                 CoerceText="true"
-                                 CoerceValue="true"
-                                 ShowProgressIndicator="true"
-                                 Placeholder="Enter Card Name" />
-                <MudCheckBox Dense="true" @bind-Value="isCommander" Color="Color.Primary" Label="Is Commander?" />
-                <MudCheckBox Dense="true" @bind-Value="isHistoricBrawlSingleCard" Color="Color.Primary" Label="Is Historic Brawl?" />
-                <MudButton Variant="Variant.Filled" Color="Color.Primary" OnClick="GetSingleCardWeightAsync">Get Card Weight</MudButton>
-                @if (singleCardWeight != 0)
-                {
-                    <MudField Label="Weight" Variant="Variant.Outlined">@singleCardWeight.ToString()</MudField>
-                }
-            </MudField>
-        </MudItem>
-    </MudGrid>
-</div>
+<MudGrid>
+    <MudItem xs="6">
+        <MudField Label="Get Deck Card Weights" Variant="Variant.Outlined">
+            <MudTextField T="string" Variant="Variant.Text" @bind-Value="@deckId" Lines="10" Placeholder="Enter deck code" />
+            <MudCheckBox @bind-Value="isHistoricBrawl" Color="Color.Primary" Label="Is Historic Brawl?" />
+            <MudButton Variant="Variant.Filled" Color="Color.Primary" OnClick="ParseDeck">Get Deck Weight</MudButton>
+            <MudButton Variant="Variant.Filled" Color="Color.Primary" OnClick="ClearInput">Clear Input</MudButton>
+        </MudField>
+    </MudItem>
+</MudGrid>
+<MudGrid>
+    <MudItem xs="6">
+        <MudField Label="Get Single Card Weight" Variant="Variant.Outlined">
+            <MudAutocomplete T="string"
+                             @bind-Value="cardName"
+                             SearchFunc="SearchCards"
+                             CoerceText="true"
+                             CoerceValue="true"
+                             ShowProgressIndicator="true"
+                             Placeholder="Enter Card Name" />
+            <MudCheckBox Dense="true" @bind-Value="isCommander" Color="Color.Primary" Label="Is Commander?" />
+            <MudCheckBox Dense="true" @bind-Value="isHistoricBrawlSingleCard" Color="Color.Primary" Label="Is Historic Brawl?" />
+            <MudButton Variant="Variant.Filled" Color="Color.Primary" OnClick="GetSingleCardWeightAsync">Get Card Weight</MudButton>
+            @if (singleCardWeight != 0)
+            {
+                <MudField Label="Weight" Variant="Variant.Outlined">@singleCardWeight.ToString()</MudField>
+            }
+        </MudField>
+    </MudItem>
+</MudGrid>
 
 @if (cards != null)
 {
@@ -71,8 +72,7 @@
     private bool isHistoricBrawl = false;
     private bool isHistoricBrawlSingleCard = false;
     private int singleCardWeight = 0;
-    private InputTextArea? multiLineInput;
-    private InputText? singleInput;
+    bool loadingData = true;
 
     private List<string> allCardNames = new List<string>(); // Assuming you have a way to get all card names
 
@@ -83,7 +83,6 @@
             cards = await DeckParserService.ParseDeck(deckId, isHistoricBrawl);
         }
 
-        await SetMultiLineInputFocusAsync();
     }
 
     private async Task GetSingleCardWeightAsync()
@@ -96,31 +95,12 @@
             else
                 singleCardWeight = await DeckParserService.GetSingleCardWeightAsync(cardName, isHistoricBrawlSingleCard);
         }
-
-        await SetSingleLineInputFocusAsync();
     }
 
-    private async Task ClearInput()
+    private void ClearInput()
     {
         deckId = string.Empty;
         cards = null;
-        await SetMultiLineInputFocusAsync();
-    }
-
-    private async Task SetMultiLineInputFocusAsync()
-    {
-        if (multiLineInput?.Element != null)
-        {
-            await multiLineInput.Element.Value.FocusAsync();
-        }
-    }
-
-    private async Task SetSingleLineInputFocusAsync()
-    {
-        if (singleInput?.Element != null)
-        {
-            await singleInput.Element.Value.FocusAsync();
-        }
     }
 
     private async Task<IEnumerable<string>> SearchCards(string value)
@@ -128,10 +108,21 @@
         return await Task.FromResult(allCardNames.Where(x => x.Contains(value, StringComparison.InvariantCultureIgnoreCase)));
     }
 
-    protected override async Task OnInitializedAsync()
-    {
-        await DeckParserService.InitializeBrawlWeightsCache();
+    // protected override async Task OnInitializedAsync()
+    // {
+    //     await DeckParserService.InitializeBrawlWeightsCache();
 
-        allCardNames = await DeckParserService.GetAllCardNames();
+    //     allCardNames = await DeckParserService.GetAllCardNames();
+    // }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            await DeckParserService.InitializeBrawlWeightsCache();
+            allCardNames = await DeckParserService.GetAllCardNames();
+            loadingData = false;
+            StateHasChanged();
+        }
     }
 }
