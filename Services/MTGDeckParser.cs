@@ -28,12 +28,13 @@ public partial class MTGDeckParser(HttpClient httpClient)
             {
                 var commanderWeight = await GetCommanderWeightAsync(inputCard.Name, isHistoricBrawl);
                 totalWeight += commanderWeight;
-                outputCards.Add(new OutputCard(inputCard.Quantity, inputCard.Name, commanderWeight));
+                outputCards.Add(new OutputCard(inputCard.Quantity, inputCard.Name, commanderWeight, commanderWeight));
             }
             else
             {
-                var cardWeight = await GetSingleCardWeightAsync(inputCard.Name, isHistoricBrawl);
-                outputCards.Add(new OutputCard(inputCard.Quantity, inputCard.Name, cardWeight));
+                var cardSingleWeight = await GetSingleCardWeightAsync(inputCard.Name, isHistoricBrawl);
+                var cardWeight = cardSingleWeight * inputCard.Quantity;
+                outputCards.Add(new OutputCard(inputCard.Quantity, inputCard.Name, cardWeight, cardSingleWeight));
                 totalWeight += cardWeight;
             }
         }

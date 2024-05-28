@@ -48,14 +48,15 @@
 {
     <MudGrid>
         <MudItem xs="12" sm="6" md="4">
-            <MudField Label="Total Weight" Variant="Variant.Text">@cards.TotalWeight</MudField>
+            <MudField Label="Combined total weight" Variant="Variant.Text">@cards.TotalWeight</MudField>
         </MudItem>
     </MudGrid>
     <MudDataGrid Items="@cards.Cards" ColumnResizeMode=ResizeMode.Container>
         <Columns>
             <PropertyColumn Property="x => x.Quantity" Title="Quantity" />
             <PropertyColumn Property="x => x.CardName" Title="Card Name" />
-            <PropertyColumn Property="x => x.Weight" Title="Weight" />
+            <PropertyColumn Property="x => x.SingleWeight" Title="Single Card Weight" />
+            <PropertyColumn Property="x => x.Weight" Title="Total Weight" />
         </Columns>
     </MudDataGrid>
 }
