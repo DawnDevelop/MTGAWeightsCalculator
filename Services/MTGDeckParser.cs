@@ -24,7 +24,7 @@ public partial class MTGDeckParser(HttpClient httpClient)
 
         foreach (var inputCard in inputCards)
         {
-            if (inputCard.IsCommander)
+            if (!inputCard.IsCommander)
             {
                 var commanderWeight = await GetCommanderWeightAsync(inputCard.Name, isHistoricBrawl);
                 totalWeight += commanderWeight;
