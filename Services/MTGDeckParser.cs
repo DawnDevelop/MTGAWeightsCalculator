@@ -12,6 +12,8 @@ public partial class MTGDeckParser(HttpClient httpClient)
     private Dictionary<string, WeightedCard>? _brawlWeightsCache;
     private static readonly char[] separator = ['\r', '\n'];
 
+    private string unsued = "";
+
     public async Task<OutputCards?> ParseDeck(string cards, bool isHistoricBrawl)
     {
         if (_brawlWeightsCache == null)
